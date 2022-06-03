@@ -1,5 +1,6 @@
 package com.example.filrouge.service;
 
+import com.example.filrouge.dto.LoginRequest;
 import com.example.filrouge.dto.RegisterRequest;
 import com.example.filrouge.exception.SpringRedditException;
 import com.example.filrouge.model.NotifEmail;
@@ -8,6 +9,8 @@ import com.example.filrouge.model.VerificationToken;
 import com.example.filrouge.repository.UserRepository;
 import com.example.filrouge.repository.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
+    private final AuthenticationManager authenticationManager;
 
     @Transactional
     public void singUp(RegisterRequest registerRequest){
@@ -57,7 +61,6 @@ public class AuthService {
         return token;
     }
 
-
     public void verifyAccount(String token) {
 
         Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
@@ -76,5 +79,11 @@ public class AuthService {
                 " name " + username));
        user.setEnabled(true);
        userRepository.save(user);
+    }
+
+    public void login(LoginRequest loginRequest) {
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+                loginRequest.getPassword()));
     }
 }

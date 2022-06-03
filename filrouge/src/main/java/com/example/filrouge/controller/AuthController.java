@@ -1,5 +1,6 @@
 package com.example.filrouge.controller;
 
+import com.example.filrouge.dto.LoginRequest;
 import com.example.filrouge.dto.RegisterRequest;
 import com.example.filrouge.service.AuthService;
 import lombok.AllArgsConstructor;
@@ -26,9 +27,12 @@ public class AuthController {
     public ResponseEntity<String> verifyAccount(@PathVariable String token){
 
         authService.verifyAccount(token);
-
-        return new ResponseEntity<String>("This account has been activated successfully", HttpStatus.OK);
+        return new ResponseEntity<>("This account has been activated successfully", HttpStatus.OK);
     }
 
+    @PostMapping("/login")
+    public void login(@RequestBody LoginRequest loginRequest){
 
+        authService.login(loginRequest);
+    }
 }
