@@ -6,16 +6,19 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,12 +26,15 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 @EnableWebSecurity
-@AllArgsConstructor
+@Configuration
+@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     // loads the user data from the database and provides it to spring
@@ -39,6 +45,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${jwt.private.key}")
     RSAPrivateKey privateKey;
+
 
     // when we autowire authentication manager like in the service, spring finds this bean and injects it in the class
     @Bean(BeanIds.AUTHENTICATION_MANAGER)
@@ -52,20 +59,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         httpSecurity.cors().and()
                 .csrf()
                 .disable()
-                .authorizeRequests()
-                .antMatchers("/api/auth/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated();
+                .authorizeRequests(authorize -> authorize
+                        .antMatchers("/api/auth/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated()
+                )
+                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt) // enables the jwt mechanism in the config
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint())
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler())
+                );
     }
 
     //here we say how we want to manage our authentication process
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
         authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
     }
 
 
+    // using the decoder, the server will decode the jwt and verify whether it's actually created by the server
+    // it is used internally by the spring security framework
     @Bean
     PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();

@@ -1,5 +1,6 @@
 package com.example.filrouge.controller;
 
+import com.example.filrouge.dto.AuthenticationResponse;
 import com.example.filrouge.dto.LoginRequest;
 import com.example.filrouge.dto.RegisterRequest;
 import com.example.filrouge.service.AuthService;
@@ -31,8 +32,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public void login(@RequestBody LoginRequest loginRequest){
+    public AuthenticationResponse login(@RequestBody LoginRequest loginRequest){
 
-        authService.login(loginRequest);
+        return authService.login(loginRequest);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.filrouge.service;
 
+import com.example.filrouge.dto.AuthenticationResponse;
 import com.example.filrouge.dto.LoginRequest;
 import com.example.filrouge.dto.RegisterRequest;
 import com.example.filrouge.exception.SpringRedditException;
@@ -8,9 +9,12 @@ import com.example.filrouge.model.User;
 import com.example.filrouge.model.VerificationToken;
 import com.example.filrouge.repository.UserRepository;
 import com.example.filrouge.repository.VerificationTokenRepository;
+import com.example.filrouge.security.JwtProvider;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +32,7 @@ public class AuthService {
     private final VerificationTokenRepository verificationTokenRepository;
     private final MailService mailService;
     private final AuthenticationManager authenticationManager;
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public void singUp(RegisterRequest registerRequest){
@@ -81,9 +86,16 @@ public class AuthService {
        userRepository.save(user);
     }
 
-    public void login(LoginRequest loginRequest) {
+    public AuthenticationResponse login(LoginRequest loginRequest) {
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
                 loginRequest.getPassword()));
+
+        // set authentication object inside the security context
+        // if you want to check if a user is logged in - look up the context
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String userToken = jwtProvider.generateToken(authenticate);
+
+        return new AuthenticationResponse(userToken, loginRequest.getUsername());
     }
 }
