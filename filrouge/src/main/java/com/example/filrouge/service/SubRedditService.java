@@ -1,6 +1,7 @@
 package com.example.filrouge.service;
 
 import com.example.filrouge.dto.SubRedditDto;
+import com.example.filrouge.exception.SpringRedditException;
 import com.example.filrouge.mapper.SubRedditMapper;
 import com.example.filrouge.model.Subreddit;
 import com.example.filrouge.repository.SubredditRepository;
@@ -19,6 +20,7 @@ import static java.util.stream.Collectors.toList;
 public class SubRedditService {
 
     private final SubredditRepository subredditRepository;
+
     private final SubRedditMapper subRedditMapper;
 
     @Transactional
@@ -51,4 +53,12 @@ public class SubRedditService {
     //            .numberOfPosts(subreddit.getPosts().size())
     //            .build();
     //}
+
+    public SubRedditDto getSubredditById(Long id) {
+
+        Subreddit subreddit = subredditRepository.findById(id).orElseThrow(() ->
+                new SpringRedditException("subreddit not found with this is!"));
+
+        return subRedditMapper.mapSubredditToDto(subreddit);
+    }
 }
