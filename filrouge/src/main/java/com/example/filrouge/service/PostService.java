@@ -13,6 +13,7 @@ import com.example.filrouge.repository.SubredditRepository;
 import com.example.filrouge.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +34,7 @@ public class PostService {
     private final AuthService authService;
     private final PostMapper postMapper;
 
-    public void save(PostRequest postRequest) {
+    public void save(@NotNull PostRequest postRequest) {
         Subreddit subreddit = subredditRepository.findByName(postRequest.getSubRedditName())
                 .orElseThrow(() -> new SubredditNotFoundException(postRequest.getSubRedditName()));
         postRepository.save(postMapper.map(postRequest,subreddit,authService.getCurrentUser()));

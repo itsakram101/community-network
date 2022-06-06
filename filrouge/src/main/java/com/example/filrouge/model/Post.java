@@ -22,7 +22,7 @@ public class Post {
     private Long postId;
 
     @NotBlank(message = "Post name cannot be empty or null")
-    private Long postName;
+    private String postName;
 
     @Nullable
     private String url;

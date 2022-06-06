@@ -14,7 +14,6 @@ import javax.validation.constraints.NotBlank;
 import java.time.Instant;
 
 @Data
-@Builder
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor

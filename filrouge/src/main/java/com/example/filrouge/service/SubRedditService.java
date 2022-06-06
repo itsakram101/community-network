@@ -57,7 +57,7 @@ public class SubRedditService {
     public SubRedditDto getSubredditById(Long id) {
 
         Subreddit subreddit = subredditRepository.findById(id).orElseThrow(() ->
-                new SpringRedditException("subreddit not found with this is!"));
+                new SpringRedditException("subreddit not found with this id!"));
 
         return subRedditMapper.mapSubredditToDto(subreddit);
     }
