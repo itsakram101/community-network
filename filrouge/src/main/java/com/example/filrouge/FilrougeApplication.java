@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @EnableAsync
 @SpringBootApplication
-@ComponentScan("com.example.filrouge.dto")
 public class FilrougeApplication {
 
     public static void main(String[] args) {

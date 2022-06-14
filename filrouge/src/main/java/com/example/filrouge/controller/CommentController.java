@@ -1,16 +1,11 @@
 package com.example.filrouge.controller;
 
 import com.example.filrouge.dto.CommentDto;
-import com.example.filrouge.model.Comment;
 import com.example.filrouge.service.CommentService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,6 +16,7 @@ public class CommentController {
 
     private final CommentService commentService;
 
+    @PostMapping
     public ResponseEntity<Void> createComment(@RequestBody CommentDto commentDto){
 
         commentService.createComment(commentDto);
@@ -28,10 +24,17 @@ public class CommentController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @GetMapping("/")
-    public ResponseEntity<List<CommentDto>> getCommentsFromPost(){
+    @GetMapping("/by-postId/{postId}")
+    public ResponseEntity<List<CommentDto>> getCommentsForPost(@PathVariable Long postId){
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(commentService.getAllComments());
+                .body(commentService.getAllCommentsForPost(postId));
+    }
+
+    @GetMapping("/by-user/{userName}")
+    public ResponseEntity<List<CommentDto>> getCommentsByUsername(@PathVariable String userName){
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(commentService.getCommentsByUsername(userName));
     }
 }
