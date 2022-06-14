@@ -34,10 +34,18 @@ public class VoteService {
                 findTopByPostAndUserOrderByVoteIdDesc(post, authService.getCurrentUser()));
 
         // same user can't do more than one action
+         /*
         if (voteByPostAndUser.get().getVoteType().equals(voteDto.getVoteType())
             && voteByPostAndUser.isPresent())
         {
             throw new SpringRedditException("you have already "+ voteDto.getVoteType());
+        }
+         */
+        if (voteByPostAndUser.isPresent() &&
+                voteByPostAndUser.get().getVoteType()
+                        .equals(voteDto.getVoteType())) {
+            throw new SpringRedditException("You have already "
+                    + voteDto.getVoteType() + "'d for this post");
         }
 
         // score system

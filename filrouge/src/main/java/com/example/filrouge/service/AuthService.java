@@ -11,6 +11,7 @@ import com.example.filrouge.repository.UserRepository;
 import com.example.filrouge.repository.VerificationTokenRepository;
 import com.example.filrouge.security.JwtProvider;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,6 +28,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
@@ -108,5 +110,10 @@ public class AuthService {
         String userToken = jwtProvider.generateToken(authenticate);
 
         return new AuthenticationResponse(userToken, loginRequest.getUsername());
+    }
+
+    public boolean isLoggedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated();
     }
 }
