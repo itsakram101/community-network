@@ -2,6 +2,7 @@ package com.example.filrouge.service;
 
 import com.example.filrouge.dto.AuthenticationResponse;
 import com.example.filrouge.dto.LoginRequest;
+import com.example.filrouge.dto.RefreshTokenRequest;
 import com.example.filrouge.dto.RegisterRequest;
 import com.example.filrouge.exception.SpringRedditException;
 import com.example.filrouge.model.NotifEmail;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -37,6 +39,7 @@ public class AuthService {
     private final MailService mailService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public void singUp(RegisterRequest registerRequest){
@@ -109,11 +112,28 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String userToken = jwtProvider.generateToken(authenticate);
 
-        return new AuthenticationResponse(userToken, loginRequest.getUsername());
+        return AuthenticationResponse.builder()
+                .authenticationToken(userToken)
+                .refreshToken(refreshTokenService.generateRefreshToken().getToken())
+                .expiresAt(Instant.now().plusMillis(jwtProvider.getJwtExpirationInMilliseconds()))
+                .username(loginRequest.getUsername())
+                .build();
     }
 
     public boolean isLoggedIn() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated();
+    }
+
+    public AuthenticationResponse refreshTokens(RefreshTokenRequest refreshTokenRequest){
+
+        refreshTokenService.validateRefreshToken(refreshTokenRequest.getRefreshToken());
+        String token = jwtProvider.generateTokenWithUserName(refreshTokenRequest.getUsername());
+
+        return AuthenticationResponse.builder()
+                .refreshToken(refreshTokenRequest.getRefreshToken())
+                .expiresAt(Instant.now().plusMillis(jwtProvider.getJwtExpirationInMilliseconds()))
+                .username(refreshTokenRequest.getUsername())
+                .build();
     }
 }
