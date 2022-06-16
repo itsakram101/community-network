@@ -27,6 +27,7 @@ public class AuthController {
         authService.singUp(registerRequest);
 
         return new ResponseEntity<>("User registration is successful", HttpStatus.OK);
+
     }
 
     @GetMapping("accountVerification/{token}")
